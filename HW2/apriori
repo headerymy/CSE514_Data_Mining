@@ -1,0 +1,329 @@
+# only consider the top x% genes that are highly expressed among all people (transactions). 
+# For this HW problem, we use x=10%. 
+setwd("E:/service/2017/3 22 headerymy")
+
+data=read.csv("case (2).csv")
+
+head(data)
+data=data[,-1]
+# # first 1800 genes
+# data=data[1:1800,]
+# 
+# 
+# countlist=apply(data,1,function(x)length(na.omit(x[2:length(x)])))
+# 
+# # order( (countlist),decreasing  =T)[1:(length(countlist)*0.1)]
+# # top 10% genes
+# data=data[order( (countlist)  )[1:(length(countlist)*0.1)],]
+# str(data)
+# 
+# # turn the gene expression matrix of the given data into a new 1/0 matrix,
+# # class=data[1,]
+# genename=data[,1]
+# data1=data[ ,-1]
+# data1[!is.na(data1)]=1
+# data1[ is.na(data1)]=0
+# head(data1)
+# data1=t(data1)
+# colnames(data1)=genename
+# 
+# 
+# test=read.csv("ctrl.csv")
+# # test=t(test)
+# # genename=colnames(test)
+# 
+# test=test[,-1]
+# # first 1800 genes
+# test=test[,1:1800]
+# 
+# head(test)
+# 
+# countlist=apply(test,2,function(x)sum(na.omit(as.numeric(x[1:length(x)]))))
+# 
+# # order( (countlist),decreasing  =T)[1:(length(countlist)*0.1)]
+# # top 10% genes
+# test=test[,order( (countlist) )[1:(length(countlist)*0.1)]]
+# str(test)
+# 
+# # turn the gene expression matrix of the given data into a new 1/0 matrix,
+# 
+# 
+# test[!is.na(test)]=1
+# test[ is.na(test)]=0
+# head(test)
+# 
+# 
+# 
+# # AD 
+# 
+# dat1=as.data.frame(data1)
+# for(i in 1:ncol(dat1))dat1[,i]=as.factor(dat1[,i])
+# dat1 <- sapply(dat1,as.factor)#transfer dat to factor
+
+# n=nrow(dat1)#caculate num of samples
+
+library(arules) # load arules packages 
+
+
+# minimal support from 2% to 8% (with an increment of 2%) and the minimal confidence from 50% to 90% (with an increment of 10%).
+
+freq=0
+rule=0
+index=1
+data=apply(data,2,as.numeric)
+# data[data!=0]=1
+data[ is.na(data) ]=1
+
+for(s in seq(0.02 ,0.08,by=0.02)){
+  for(c in seq(0.5 ,0.9,by=0.1)){
+    
+    frequentsets=eclat(data[1:10,],parameter=list(support=s ,minlen=2)) #get frequent sets
+    freq[index]=length(frequentsets)
+    rules=apriori(data[1:10,] ,parameter=list(support=s,confidence=c,minlen=2 )) #求关联规则
+    rule[index]=length(rules)
+    index=index+1
+    
+  }
+}
+
+
+# inspect(head(rules))
+library(plot3D)
+library(rgl) 
+
+freq=matrix(freq,4,5)
+
+rule=matrix(rule,4,5)
+
+rownames(freq)=seq(0.02 ,0.08,by=0.02)
+colnames(freq)=seq(0.5 ,0.9,by=0.1)
+freq
+
+
+rownames(rule)=seq(0.02 ,0.08,by=0.02)
+colnames(rule)=seq(0.5 ,0.9,by=0.1)
+rule
+
+plot3d( seq(0.02 ,0.08,by=0.02), seq(0.5 ,0.9,by=0.1), freq, col=rainbow(1000),  
+        xlab="support", ylab="confidence", zlab="freq") 
+
+plot3d( seq(0.02 ,0.08,by=0.02), seq(0.5 ,0.9,by=0.1), rule, col=rainbow(1000),  
+        xlab="support", ylab="confidence", zlab="rule") 
+
+
+
+# controls 
+
+dat1=as.data.frame(test)
+
+for(i in 1:ncol(dat1))dat1[,i]=as.factor(dat1[,i])
+# dat1 <- sapply(dat1,as.factor)#transfer dat to factor
+
+# n=nrow(dat1)#caculate num of samples
+
+library(arules) # load arules packages 
+
+
+# minimal support from 2% to 8% (with an increment of 2%) and the minimal confidence from 50% to 90% (with an increment of 10%).
+
+freq=0
+rule=0
+index=1
+
+for(s in seq(0.02 ,0.08,by=0.02)){
+  for(c in seq(0.5 ,0.9,by=0.1)){
+    
+    frequentsets=eclat(dat1[1:10],parameter=list(support=s ,minlen=2)) #get frequent sets
+    freq[index]=length(frequentsets)
+    rules1=apriori(dat1[1:10] ,parameter=list(support=s,confidence=c,minlen=2 )) #求关联规则
+    rule[index]=length(rules1)
+    index=index+1
+    
+  }
+}
+
+
+
+# inspect(head(rules))
+library(plot3D)
+library(rgl) 
+
+freq=matrix(freq,4,5)
+
+rule=matrix(rule,4,5)
+rownames(freq)=seq(0.02 ,0.08,by=0.02)
+colnames(freq)=seq(0.5 ,0.9,by=0.1)
+freq
+
+
+rownames(rule)=seq(0.02 ,0.08,by=0.02)
+colnames(rule)=seq(0.5 ,0.9,by=0.1)
+rule
+
+plot3d( seq(0.02 ,0.08,by=0.02), seq(0.5 ,0.9,by=0.1), freq, col=rainbow(1000),  
+        xlab="support", ylab="confidence", zlab="freq") 
+
+plot3d( seq(0.02 ,0.08,by=0.02), seq(0.5 ,0.9,by=0.1), rule, col=rainbow(1000),  
+        xlab="support", ylab="confidence", zlab="rule") 
+
+
+
+
+# 2.Sort the frequent itemsets, from high frequencies to low. Report the top 50 most frequent itemsets.
+
+rules <- sort(rules, by="support")
+inspect(head(rules, n=50))
+
+rules1 <- sort(rules1, by="support")
+inspect(head(rules1, n=50))
+
+#Look at rules with highest support
+#total number of frequent itemsets and ARs discovered 
+
+
+# 3.Answer the following question: What information does a discovered AR give us? Or, What is the meaning of an AR here?
+
+
+
+
+
+# 4.Compare the top 50 most confident RAs from these two basket datasets to see what are common and what are different to 
+# see if the possible difference in gene regulation in AD and controls.
+
+
+
+
+
+# P2: Feature selection – part 1 – Random Forest (RF) based  
+data=read.csv("case.csv")
+ 
+head(data)
+# data=data[-1,]
+# first 1800 genes
+data=data[1:1800,]
+
+
+
+data=t(data)
+colnames(data)=data[1 , ]
+data=data[-1,]
+
+# 70% of the total number of features,
+library(randomForest)
+# data1=data[,1:(0.7*ncol(data))]
+data1=as.data.frame(data)
+# data2=na.omit(data1)
+data1$Classes=as.factor(data1$Classes)
+ countlist=apply(data1,2,function(x)sum(na.omit(as.numeric(x[1:length(x)]))))
+
+ data1=data1[,order( (countlist),decreasing  =T)[1:(length(countlist)*0.1)]] 
+# top 10% genes
+# test=test[,order( (countlist) )[1:(length(countlist)*0.1)]]
+
+ 
+ test=read.csv("ctrl.csv")
+ # test=t(test)
+ # genename=colnames(test)
+ 
+ test=test[,-1]
+ # first 1800 genes
+ test=test[,1:1800]
+ 
+ head(test)
+ 
+ 
+
+
+# 1.Fix the number of features (genes) at 70% of the total number of features, vary the number of instances from 50% to 90%, with an increment of 5%;
+
+ 
+ data1=as.data.frame(data)
+ # data2=na.omit(data1)
+ data1$Classes=as.factor(data1$Classes)
+ countlist=apply(data1,2,function(x)sum(na.omit(as.numeric(x[1:length(x)]))))
+ 
+ data1=data1[,order( (countlist),decreasing  =T)[1:(length(countlist)*0.1)]] 
+ 
+ 
+ countlist=apply(test,2,function(x)sum(na.omit(as.numeric(x[1:length(x)]))))
+ 
+ # order( (countlist),decreasing  =T)[1:(length(countlist)*0.1)]
+ # top 10% genes
+ test=test[,order( (countlist) )[1:(length(countlist)*0.1)]]
+ 
+ # test=test[1:20,1: 125]
+ 
+ colnames(test)=colnames(data1)
+ test$Classes=1
+ 
+ 
+ traindata=rbind(data1,test)
+ traindata$Classes=as.numeric(traindata$Classes)
+ traindata$Classes[is.na(traindata$Classes)]=2
+ traindata=as.data.frame(traindata)
+ 
+ traindata$Classes=as.factor(traindata$Classes)
+ traindata=as.data.frame(traindata)
+ for(i in 2:ncol(traindata))traindata[,i]=as.numeric(traindata[,i])
+ traindata[is.na(traindata)]=0
+ 
+ # 50% to 90%, with an increment of 5%
+ for(p in seq(0.5,0.9,0.05)){ 
+   index=sample(1:(nrow(traindata) ),nrow(traindata)*p )
+   rf <- randomForest( traindata[index,2:ncol(traindata)],  traindata$Classes[index],
+                                                  
+                                                  ntree=500 , 
+                                                  importance=T
+ )
+  library(caret)
+   print(head(c(rf)))
+ varImpPlot(rf,type=2)
+ }
+
+ 
+ ##important feature
+ 
+
+ 
+ 
+  
+
+# 2.Fix the number of instances at 70% of the total number of instances, vary the number of features (genes) from 50% to 90%, with an increment of 5%;
+
+ # 50% to 90%, with an increment of 5%
+  
+ for(p in seq(0.5,0.9,0.05)){ 
+   index=sample(2:(ncol(traindata) ),ncol(traindata)*p )
+   rf <- randomForest( traindata[,index],  traindata$Classes ,
+                       
+                       ntree=500 , 
+                       importance=T
+   )
+   print(head(varImp(rf)))
+   varImpPlot(rf,type=2)
+ }
+ 
+ 
+ 
+
+
+# 3.What does the frequency of a gene in a RF tell us about this gene for AD? Or, how do we compare two genes based on their frequencies?
+
+
+
+
+
+# 4.Now the feature selection: Not all 8,000+ genes are important or useful. If you can only use a small number of genes, say 100, which ones do you use?
+
+
+
+
+
+# 5.(not required, but if you do it correctly or in a meaningful way, you get 5 bonus points) Are the orderings of the genes using the RF method stable?  What factors affect the stability? How can we quantify the stability? 
+
+
+
+
+
+
+
